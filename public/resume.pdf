@@ -1,0 +1,80 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 850 >>
+stream
+BT
+/F2 20 Tf
+50 720 Td
+(RUBAN - NETWORK ENGINEER & SYSTEMS ARCHITECT) Tj
+/F1 10 Tf
+0 -24 Td
+(Email: rubanpooventhan@outlook.com | Experience: 2.5+ Years | Location: Global / Remote) Tj
+0 -28 Td
+/F2 13 Tf
+(PROFESSIONAL PROFILE) Tj
+0 -16 Td
+/F1 10 Tf
+(I build scalable frameworks, Network solutions, and AI-powered workflows to deliver) Tj
+0 -14 Td
+(reliable, high-quality software across enterprise cloud and on-premises environments.) Tj
+0 -24 Td
+/F2 13 Tf
+(CORE COMPETENCIES) Tj
+0 -16 Td
+/F1 10 Tf
+(- Networking: Cisco Catalyst Routing & Switching, VLANs, Trunking, OSPF, BGP) Tj
+0 -14 Td
+(- Systems: Windows Server, Linux (Ubuntu/RHEL), Active Directory Domain Services) Tj
+0 -14 Td
+(- Security & Cloud: Next-Gen Firewalls, AWS Cloud (VPC, IAM, EC2), IPSec VPN, 802.1X) Tj
+0 -14 Td
+(- Virtualization: VMware vSphere, ESXi 8.0, vCenter, vMotion, vSAN Clusters) Tj
+0 -14 Td
+(- Scripting & Code: PowerShell, TypeScript, JavaScript, Python, Playwright, CI/CD) Tj
+0 -24 Td
+/F2 13 Tf
+(WORK EXPERIENCE) Tj
+0 -16 Td
+/F2 11 Tf
+(System Engineer | Enterprise Technology Infrastructure (2024 - Present)) Tj
+0 -14 Td
+/F1 10 Tf
+(- Architected high-availability network security boundaries and multi-site IPSec VPNs.) Tj
+0 -14 Td
+(- Orchestrated Active Directory federation with AWS IAM Identity Center and SSO.) Tj
+0 -14 Td
+(- Maintained 99.98% uptime across 40+ production virtual machines on VMware clusters.) Tj
+0 -14 Td
+(- Automated infrastructure tasks and compliance auditing using PowerShell and bash.) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000244 00000 n 
+0000001146 00000 n 
+0000001217 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+1293
+%%EOF
