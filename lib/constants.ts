@@ -203,9 +203,9 @@ export const EXPERIENCES: ExperienceItem[] = [
       {
         title: "Virtualization & Cloud Computing",
         items: [
-          "Architected VMware ESXi and vCenter server clusters with automated vMotion and DRS load balancing.",
+          "Architected VMware ESXi and vCenter server clusters with dynamic vMotion and DRS load balancing.",
           "Orchestrated hybrid AWS cloud connectivity using AWS Site-to-Site VPN and Direct Connect integrations.",
-          "Automated VM deployment, snapshot retention, and storage allocation using PowerShell PowerCLI scripts.",
+          "Scripted VM deployment, snapshot retention, and storage allocation using PowerShell PowerCLI scripts.",
         ],
       },
       {
@@ -250,7 +250,7 @@ export const PROJECTS: ProjectItem[] = [
     metrics: [
       "99.99% Directory Availability",
       "Zero-Trust SSO Integration",
-      "Automated RBAC Provisioning",
+      "Dynamic RBAC Provisioning",
       "Sub-15ms Auth Latency",
     ],
     tags: ["Active Directory", "AWS Cloud", "PowerShell", "IAM & SSO", "Windows Server", "Security"],
@@ -259,7 +259,7 @@ export const PROJECTS: ProjectItem[] = [
     liveUrl: "https://demo.ruban-infra.internal/ad-aws",
     gradient: "from-blue-600/30 via-indigo-600/20 to-purple-600/30",
     features: [
-      "Automated cross-account IAM role federation via SAML 2.0 and AWS IAM Identity Center.",
+      "Seamless cross-account IAM role federation via SAML 2.0 and AWS IAM Identity Center.",
       "Custom PowerShell scripts executing scheduled audits on stale computer objects and inactive accounts.",
       "Fine-grained password policies and multi-factor authentication (MFA) enforcement across all privileged tiers.",
       "Real-time CloudWatch and Windows Event Log security telemetry forwarded to centralized SIEM.",
@@ -286,7 +286,7 @@ export const PROJECTS: ProjectItem[] = [
     gradient: "from-purple-600/30 via-pink-600/20 to-indigo-600/30",
     features: [
       "vSphere High Availability (HA) and Distributed Resource Scheduler (DRS) rules tuned for peak loads.",
-      "Automated VM backup workflows using Veeam Backup & Replication with instant VM recovery capabilities.",
+      "Resilient VM backup workflows using Veeam Backup & Replication with instant VM recovery capabilities.",
       "PowerCLI scripts for batch VM provisioning, snapshot hygiene, and ESXi host patch compliance.",
       "Isolated VMkernel networks for vMotion, Fault Tolerance, and storage traffic over redundant 10GbE uplinks.",
     ],
@@ -296,9 +296,9 @@ export const PROJECTS: ProjectItem[] = [
   {
     id: "file-server-management",
     title: "File Server Management Infrastructure",
-    subtitle: "Distributed File System & Automated Tiered Storage",
+    subtitle: "Distributed File System & Tiered Storage Architecture",
     description:
-      "Deployed a fault-tolerant, high-performance Windows Distributed File System (DFS) namespace architecture supporting 500+ corporate users. Implemented NTFS access-based enumeration, BitLocker volume encryption at rest, automated tiered snapshot cycles, and quota monitoring.",
+      "Deployed a fault-tolerant, high-performance Windows Distributed File System (DFS) namespace architecture supporting 500+ corporate users. Implemented NTFS access-based enumeration, BitLocker volume encryption at rest, scheduled tiered snapshot cycles, and quota monitoring.",
     metrics: [
       "12TB Managed Storage",
       "Instant Shadow Copies",
@@ -357,7 +357,7 @@ export const SERVICES: ServiceItem[] = [
     features: [
       "Proactive system health monitoring & alerting",
       "Active Directory & Microsoft 365 identity management",
-      "Automated OS imaging and patch distribution",
+      "Centralized OS imaging and patch distribution",
       "Rapid turnaround ticket resolution with strict SLAs",
     ],
     icon: "Headphones",
@@ -411,13 +411,13 @@ export const SERVICES: ServiceItem[] = [
   {
     id: "ai-systems-consulting",
     title: "AI Systems Consulting",
-    tagline: "Autonomous Agent Pipelines & Intelligent Workflows",
+    tagline: "Intelligent Agent Pipelines & Autonomous Workflows",
     description:
       "Transforming repetitive manual processes into self-healing, intelligent workflows using Large Language Models (ChatGPT, Claude, Gemini) and custom scripting.",
     features: [
-      "Custom AI agent design for IT triage & automated replies",
+      "Custom AI agent design for IT triage & instant replies",
       "Integration of LLM APIs with internal company systems",
-      "Automated log summarization and anomaly detection",
+      "Intelligent log summarization and anomaly detection",
       "Prompt engineering and token cost optimization audits",
     ],
     icon: "Sparkles",
@@ -432,7 +432,7 @@ export const SERVICES: ServiceItem[] = [
     features: [
       "VMware ESXi and vCenter cluster deployments",
       "AWS VPC, EC2, S3, and IAM policy architecture",
-      "Automated disaster recovery & immutable backup plans",
+      "Resilient disaster recovery & immutable backup plans",
       "Comprehensive cloud cost reduction and security auditing",
     ],
     icon: "CloudCog",

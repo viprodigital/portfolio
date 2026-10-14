@@ -9,7 +9,6 @@ import {
   Github,
   Youtube,
   Mail,
-  Heart,
 } from "lucide-react";
 
 export const Footer: React.FC = () => {
@@ -25,40 +24,35 @@ export const Footer: React.FC = () => {
   ];
 
   return (
-    <footer className="relative bg-[#070B14] border-t border-white/10 pt-16 pb-12 overflow-hidden">
-      {/* Background Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-24 bg-primary/10 blur-[90px] pointer-events-none" />
-
+    <footer className="relative bg-[#06080E] hairline-t pt-16 pb-12 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-white/10">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 hairline-b">
           
           {/* Brand Info */}
           <div className="md:col-span-5 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary p-[1px] shadow-neon-primary">
-                <div className="w-full h-full bg-[#0B1120] rounded-[11px] flex items-center justify-center">
-                  <Terminal className="w-5 h-5 text-accent" />
-                </div>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center text-cyan-400">
+                <Terminal className="w-4 h-4" />
               </div>
-              <span className="font-extrabold text-xl text-white tracking-tight">
+              <span className="font-bold text-lg text-white tracking-tight">
                 {PERSONAL_INFO.name}
               </span>
             </div>
 
-            <p className="text-xs sm:text-sm text-muted leading-relaxed max-w-sm">
+            <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
               Network Engineer, Systems Architect, and AI Strategist.
               Building high-throughput, self-healing digital infrastructures.
             </p>
 
             {/* Social Icons */}
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-2.5 pt-1">
               {socials.map((social) => (
                 <a
                   key={social.label}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-muted hover:text-white hover:bg-primary/20 hover:border-primary/40 transition-all duration-200"
+                  className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 text-slate-400 hover:text-white hover:bg-white/[0.08] transition-all duration-200"
                   aria-label={social.label}
                 >
                   <social.icon className="w-4 h-4" />
@@ -69,7 +63,7 @@ export const Footer: React.FC = () => {
 
           {/* Quick Navigation Links */}
           <div className="md:col-span-4 space-y-3">
-            <h4 className="text-xs font-mono uppercase tracking-widest text-slate-300 font-semibold mb-4">
+            <h4 className="text-xs font-mono uppercase tracking-widest text-slate-400 font-semibold mb-3">
               Navigation
             </h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
@@ -77,7 +71,7 @@ export const Footer: React.FC = () => {
                 <a
                   key={link.name}
                   href={link.href}
-                  className="text-muted hover:text-white hover:translate-x-1 transition-all py-1"
+                  className="text-slate-400 hover:text-white transition-colors py-1"
                 >
                   {link.name}
                 </a>
@@ -92,25 +86,25 @@ export const Footer: React.FC = () => {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 <span>All Systems Operational</span>
               </div>
-              <p className="text-[11px] font-mono text-muted">
-                Latency: &lt;18ms &bull; Next.js 14 App Router
+              <p className="text-[11px] font-mono text-slate-500">
+                Latency: &lt;14ms &bull; Next.js 14 App Router
               </p>
             </div>
 
             {/* Back to top button */}
             <button
               onClick={scrollToTop}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/[0.05] hover:bg-white/10 border border-white/10 text-xs font-mono text-slate-300 hover:text-white transition-all hover:scale-105 active:scale-95 shadow-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl card-2026 text-xs font-mono text-slate-300 hover:text-white transition-all active:scale-95"
               aria-label="Scroll to top of page"
             >
               <span>Back To Top</span>
-              <ArrowUp className="w-3.5 h-3.5 text-accent" />
+              <ArrowUp className="w-3.5 h-3.5 text-cyan-400" />
             </button>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-muted">
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-slate-500">
           <div>
             &copy; {new Date().getFullYear()} {PERSONAL_INFO.name}. All rights reserved.
           </div>

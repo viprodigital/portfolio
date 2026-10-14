@@ -42,7 +42,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-background/80 backdrop-blur-md"
+          className="fixed inset-0 bg-[#05070C]/85 backdrop-blur-md"
         />
 
         {/* Modal Window */}
@@ -51,71 +51,73 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-3xl rounded-3xl bg-[#0F172A] border border-white/15 p-6 sm:p-8 shadow-2xl z-10 max-h-[90vh] overflow-y-auto text-left"
+          className="relative w-full max-w-3xl rounded-3xl card-2026 p-6 sm:p-8 shadow-2xl z-10 max-h-[90vh] overflow-y-auto text-left"
         >
           {/* Close Button */}
           <button
             onClick={onClose}
             aria-label="Close project modal"
-            className="absolute top-5 right-5 p-2 rounded-full bg-white/5 border border-white/10 text-muted hover:text-white hover:bg-white/10 transition-colors"
+            className="absolute top-5 right-5 p-2 rounded-xl bg-white/[0.04] border border-white/10 text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
 
           {/* Header */}
           <div className="mb-6">
-            <span className="inline-block px-3 py-1 rounded-full text-xs font-mono font-medium text-accent bg-accent/10 border border-accent/20 mb-3">
+            <span className="inline-block px-3 py-1 rounded-full text-xs font-mono font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 mb-3">
               {project.category}
             </span>
-            <h3 id="modal-project-title" className="text-2xl sm:text-3xl font-bold text-white mb-2">
+            <h3 id="modal-project-title" className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-1.5">
               {project.title}
             </h3>
-            <p className="text-sm font-mono text-primary font-medium">
+            <p className="text-xs font-mono text-cyan-400 font-semibold">
               {project.subtitle}
             </p>
           </div>
 
           {/* Metrics Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 p-4 rounded-xl bg-white/[0.03] border border-white/5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
             {project.metrics.map((metric, i) => (
               <div key={i} className="text-center p-2">
-                <div className="text-xs text-muted mb-1 font-mono">Metric {i + 1}</div>
-                <div className="text-sm sm:text-base font-bold text-white text-gradient-primary">
+                <div className="text-[10px] text-slate-500 mb-1 font-mono uppercase tracking-widest">
+                  Metric 0{i + 1}
+                </div>
+                <div className="text-xs sm:text-sm font-bold text-white font-mono">
                   {metric}
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Description */}
+          {/* Architecture Overview */}
           <div className="mb-6">
-            <h4 className="text-xs font-mono uppercase tracking-wider text-muted mb-2 flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-primary" /> Architecture Overview
+            <h4 className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-2">
+              <Cpu className="w-3.5 h-3.5 text-cyan-400" /> Architecture Overview
             </h4>
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
               {project.description}
             </p>
           </div>
 
-          {/* Architectural Deep-Dive */}
-          <div className="mb-6 p-4 rounded-xl bg-indigo-950/20 border border-indigo-500/20">
+          {/* Deep Topology Box */}
+          <div className="mb-6 p-4 rounded-2xl bg-indigo-500/[0.06] border border-indigo-500/20">
             <h4 className="text-xs font-mono uppercase tracking-wider text-indigo-300 mb-2 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-indigo-400" /> Deep Topology & Implementation
+              <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" /> Deep Topology & Implementation
             </h4>
-            <p className="text-slate-300 text-sm leading-relaxed">
+            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-normal">
               {project.architectureDetails}
             </p>
           </div>
 
-          {/* Key Deliverables & Features */}
+          {/* Key Deliverables */}
           <div className="mb-6">
-            <h4 className="text-xs font-mono uppercase tracking-wider text-muted mb-3">
+            <h4 className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-3">
               Key Engineering Features
             </h4>
             <ul className="space-y-2.5">
               {project.features.map((feature, i) => (
-                <li key={i} className="flex items-start gap-2.5 text-sm text-slate-300">
-                  <CheckCircle2 className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                <li key={i} className="flex items-start gap-2.5 text-xs text-slate-300">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
                   <span>{feature}</span>
                 </li>
               ))}
@@ -124,10 +126,10 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
 
           {/* Tech Badges */}
           <div className="mb-8">
-            <h4 className="text-xs font-mono uppercase tracking-wider text-muted mb-3">
+            <h4 className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-3">
               Technologies & Protocols
             </h4>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {project.tags.map((tag) => (
                 <TechBadge key={tag} name={tag} />
               ))}
@@ -135,12 +137,12 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-white/10">
+          <div className="flex flex-wrap items-center gap-3 pt-5 hairline-t">
             <a
               href={project.githubUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-medium text-sm transition-all hover:scale-[1.02]"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-white font-medium text-xs transition-all"
             >
               <Github className="w-4 h-4" />
               <span>View Repository</span>
@@ -149,7 +151,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
               href={project.liveUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary to-secondary hover:opacity-95 text-white font-medium text-sm transition-all shadow-neon-primary hover:scale-[1.02]"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary to-indigo-600 hover:opacity-95 text-white font-medium text-xs transition-all shadow-[0_0_15px_rgba(79,70,229,0.3)]"
             >
               <ExternalLink className="w-4 h-4" />
               <span>Live Demonstration</span>

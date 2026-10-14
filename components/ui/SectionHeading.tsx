@@ -29,24 +29,24 @@ export const SectionHeading: React.FC<SectionHeadingProps> = ({
     >
       {/* Pill Badge */}
       <div
-        className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-md mb-4 text-xs font-mono uppercase tracking-widest text-indigo-300 ${
+        className={`inline-flex items-center gap-2 px-3.5 py-1 rounded-full card-2026 mb-4 text-xs font-mono uppercase tracking-widest text-cyan-400 ${
           centered ? "mx-auto" : ""
         }`}
       >
-        <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
         <span>{badge}</span>
       </div>
 
       {/* Main Title */}
-      <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
+      <h2 className="text-3xl md:text-5xl font-black tracking-[-0.03em] text-white mb-4 leading-tight">
         {title}{" "}
         {highlightedText && (
-          <span className="text-gradient-primary">{highlightedText}</span>
+          <span className="text-gradient-brand">{highlightedText}</span>
         )}
       </h2>
 
       {/* Subtitle */}
-      <p className="text-base md:text-lg text-muted leading-relaxed">
+      <p className="text-sm md:text-base text-slate-400 leading-relaxed font-normal">
         {subtitle}
       </p>
     </motion.div>

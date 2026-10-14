@@ -23,6 +23,10 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://ruban-portfolio.dev"),
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+  },
   title: {
     default: "Ruban — Network Engineer, Systems Architect & AI Strategist",
     template: "%s | Ruban",
