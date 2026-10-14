@@ -4,7 +4,15 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, subject, message } = body;
+    const { name, email, subject, message, honeypot } = body;
+
+    // Bot trap check: if honeypot is populated, silently acknowledge without saving
+    if (honeypot && String(honeypot).trim().length > 0) {
+      return NextResponse.json(
+        { success: true, message: "Message dispatched." },
+        { status: 200 }
+      );
+    }
 
     // 1. Validation
     if (!name || typeof name !== "string" || name.trim().length === 0) {

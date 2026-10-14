@@ -1,0 +1,25 @@
+---
+title: "Advanced OSPF Multi-Area Routing in Enterprise Networks"
+slug: "advanced-ospf-multi-area-routing"
+description: "Design and configure OSPF Area 0, Totally Stubby Areas (TSA), and NSSA boundaries with LSA filtering."
+date: "2026-10-14"
+category: "Networking"
+tags: ["OSPF", "Cisco", "Routing", "LSA"]
+readingTime: "1 min read"
+featured: false
+draft: false
+author:
+  name: "Ruban"
+  role: "Network Engineer & Systems Architect"
+  avatar: "/images/ruban-profile.jpg"
+---
+
+## OSPF Multi-Area Overview
+
+OSPF Area 0 (Backbone) anchors the enterprise transit core.
+
+`cisco-ios
+router ospf 1
+ router-id 10.10.99.1
+ network 10.10.0.0 0.0.255.255 area 0
+`

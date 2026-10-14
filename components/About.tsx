@@ -5,7 +5,7 @@ import { motion, useInView } from "framer-motion";
 import { SectionHeading } from "./ui/SectionHeading";
 import { STATS, SKILL_PILLS } from "@/lib/constants";
 import { fadeIn, staggerContainer } from "@/lib/animations";
-import { CheckCircle2, ShieldCheck, Terminal, Award } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Terminal, Award, GraduationCap } from "lucide-react";
 
 interface CounterProps {
   target: number;
@@ -101,8 +101,8 @@ export const About: React.FC = () => {
                 <div className="flex items-start gap-3 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
                   <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="text-sm font-semibold text-white">Security-First Mindset</h4>
-                    <p className="text-xs text-slate-400 mt-0.5">Strict ACLs, zero-trust VPNs, and encrypted storage protocols.</p>
+                    <h4 className="text-sm font-semibold text-white">Security-First Architecture</h4>
+                    <p className="text-xs text-slate-400 mt-0.5">FortiOS 7.6 certified, stateful ACLs, zero-trust VPNs, and defense in depth.</p>
                   </div>
                 </div>
 
@@ -110,7 +110,23 @@ export const About: React.FC = () => {
                   <Award className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
                   <div>
                     <h4 className="text-sm font-semibold text-white">99.98% High Availability</h4>
-                    <p className="text-xs text-slate-400 mt-0.5">Failover clustering, instant snapshots, and resilient WAN routing.</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Failover clustering, instant Veeam snapshots, and resilient WAN routing.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                  <GraduationCap className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-semibold text-white">B.Tech Computer Science</h4>
+                    <p className="text-xs text-slate-400 mt-0.5">PKIET, Pondicherry University graduate with deep networking focus.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                  <Terminal className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-semibold text-white">Automated Dev & Ops</h4>
+                    <p className="text-xs text-slate-400 mt-0.5">PowerShell, bash, TypeScript & Next.js to automate operational tasks.</p>
                   </div>
                 </div>
               </div>

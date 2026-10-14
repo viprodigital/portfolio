@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -231,27 +232,44 @@ export const Hero: React.FC = () => {
                 </div>
               </div>
 
-              {/* Profile Summary Badge */}
-              <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 mb-5">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-primary to-cyan-500 p-[1px] shrink-0">
-                  <div className="w-full h-full bg-[#080B11] rounded-[11px] flex items-center justify-center font-bold text-lg text-white">
-                    R
+              {/* Rounded Hero Profile Image & Credentials with Subtle Glow */}
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/5 mb-5 relative overflow-hidden group">
+                <div className="relative shrink-0">
+                  <div className="absolute -inset-1 rounded-2xl bg-gradient-to-tr from-primary via-indigo-500 to-cyan-400 opacity-70 blur-md group-hover:opacity-100 transition-opacity" />
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden ring-2 ring-primary/40 shadow-[0_0_25px_rgba(79,70,229,0.35)] bg-slate-900">
+                    <Image
+                      src="/images/ruban-profile.jpg"
+                      alt="Ruban — Network Engineer & Systems Architect"
+                      width={96}
+                      height={96}
+                      priority
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                    />
                   </div>
+                  <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#080B11] flex items-center justify-center shadow-md">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                  </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-white text-sm truncate">Ruban</h3>
+                <div className="flex-1 min-w-0 text-center sm:text-left">
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                    <h3 className="font-bold text-white text-base">Ruban</h3>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                       2.5+ Yrs Exp
                     </span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                      FortiGate 7.6
+                    </span>
                   </div>
-                  <p className="text-xs text-slate-400 truncate">Network Engineer & Systems Architect</p>
-                  <div className="flex items-center gap-3 mt-1 text-[10px] text-emerald-400 font-mono">
+                  <p className="text-xs text-slate-300 mt-0.5 font-medium">Network Engineer & Systems Architect</p>
+                  <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
+                    Enterprise Routing (Cisco), Next-Gen Firewalls (Fortinet), VMware vSphere & Hybrid Cloud.
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 mt-2 text-[10px] text-emerald-400 font-mono">
                     <span className="flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" /> Cisco Certified
+                      <CheckCircle className="w-3 h-3" /> Cisco Certified Track
                     </span>
                     <span className="flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" /> AWS Cloud
+                      <CheckCircle className="w-3 h-3" /> Fortinet Certified
                     </span>
                   </div>
                 </div>

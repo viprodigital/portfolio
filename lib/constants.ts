@@ -91,13 +91,30 @@ export const PERSONAL_INFO = {
   },
 };
 
+export interface CertificationItem {
+  id: string;
+  title: string;
+  issuer: string;
+  date: string;
+  credentialId?: string;
+  category: "Security" | "Networking" | "Cloud" | "Education";
+  status: "Verified" | "Completed" | "Active";
+  badgeText: string;
+  description: string;
+  skills: string[];
+  gradient: string;
+  verificationUrl?: string;
+}
+
 export const NAV_LINKS = [
   { name: "Home", href: "#home" },
   { name: "About", href: "#about" },
   { name: "Skills", href: "#skills" },
   { name: "Experience", href: "#experience" },
+  { name: "Certifications", href: "#certifications" },
   { name: "Projects", href: "#projects" },
   { name: "Services", href: "#services" },
+  { name: "Blog", href: "/blog" },
   { name: "Contact", href: "#contact" },
 ];
 
@@ -437,5 +454,62 @@ export const SERVICES: ServiceItem[] = [
     ],
     icon: "CloudCog",
     gradient: "from-emerald-500/20 via-cyan-500/10 to-transparent",
+  },
+];
+
+export const CERTIFICATIONS: CertificationItem[] = [
+  {
+    id: "fortigate-7-6-operator",
+    title: "FortiGate 7.6 Operator",
+    issuer: "Fortinet Training Institute",
+    date: "October 2026",
+    credentialId: "FTI-76-RP-2026",
+    category: "Security",
+    status: "Verified",
+    badgeText: "Official Certification",
+    description:
+      "Verified course completion and operational proficiency in FortiOS 7.6 firewall architectures, stateful traffic inspection, Next-Gen firewall policies, NAT modes, and clientless/tunnel SSL-VPN gateway deployments.",
+    skills: ["FortiOS 7.6", "Next-Gen Firewall", "Stateful Inspection", "NAT / PAT", "SSL-VPN", "Security Profiles"],
+    gradient: "from-red-600/25 via-rose-600/15 to-purple-600/20",
+    verificationUrl: "/certificates/fortigate-7.6-operator.pdf",
+  },
+  {
+    id: "cisco-routing-switching",
+    title: "Cisco Routing & Switching Architecture",
+    issuer: "Enterprise Implementation & CCNA Track",
+    date: "2024 - 2026",
+    category: "Networking",
+    status: "Active",
+    badgeText: "Enterprise Validated",
+    description:
+      "Hands-on production network engineering across Cisco Catalyst series switches and ISR routers: 802.1Q trunking, inter-VLAN routing, OSPF dynamic routing, spanning-tree loop mitigation (Rapid-PVST+), and 802.1X port security.",
+    skills: ["Cisco Catalyst", "VLAN Segmentation", "OSPF / BGP", "802.1Q Trunking", "Rapid-PVST+", "Port Security"],
+    gradient: "from-blue-600/25 via-cyan-600/15 to-indigo-600/20",
+  },
+  {
+    id: "aws-hybrid-cloud",
+    title: "AWS Cloud & Hybrid Identity Architecture",
+    issuer: "AWS Enterprise Architecture Practice",
+    date: "2024 - 2026",
+    category: "Cloud",
+    status: "Active",
+    badgeText: "Hybrid Cloud Specialist",
+    description:
+      "Production deployment of AWS virtual infrastructure integrated with on-premises Active Directory. Implementing AWS IAM Identity Center (SSO), VPC Peering, Direct Connect / Site-to-Site IPSec VPNs, and least-privilege security policies.",
+    skills: ["AWS VPC", "IAM Identity Center", "EC2 & S3", "IPSec Tunneling", "CloudWatch", "Hybrid AD DS"],
+    gradient: "from-amber-600/25 via-indigo-600/15 to-purple-600/20",
+  },
+  {
+    id: "btech-cse",
+    title: "B.Tech in Computer Science & Engineering",
+    issuer: "PKIET, Pondicherry University",
+    date: "Graduated",
+    category: "Education",
+    status: "Completed",
+    badgeText: "Bachelor Degree",
+    description:
+      "Formal engineering degree specializing in computer science, enterprise computer networks, operating system kernels, relational databases, data structures, and distributed systems architecture.",
+    skills: ["Computer Networks", "Operating Systems", "Data Structures", "System Security", "Software Engineering"],
+    gradient: "from-emerald-600/25 via-teal-600/15 to-blue-600/20",
   },
 ];

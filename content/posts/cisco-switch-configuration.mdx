@@ -1,0 +1,247 @@
+---
+title: "Cisco Catalyst Switch Initial Configuration & Hardening Guide: From Console to Production"
+slug: "cisco-switch-configuration"
+description: "A production-tested blueprint for unboxing, provisioning, and hardening Cisco Catalyst Layer 2 and Layer 3 switches with SSHv2, Port Security, BPDU Guard, and 802.1Q trunks."
+date: "2026-09-18"
+category: "Networking"
+tags: ["Cisco", "Catalyst", "Switching", "CLI", "Hardening", "Security"]
+readingTime: "9 min read"
+featured: true
+draft: false
+author:
+  name: "Ruban"
+  role: "Network Engineer & Systems Architect"
+  avatar: "/images/ruban-profile.jpg"
+---
+
+## Introduction
+
+Commissioning a new Cisco Catalyst switch into an enterprise production environment demands much more than assigning an IP address and enabling ports. Without strict configuration hygiene and baseline hardening, Layer 2 switches are prone to broadcast storms, rogue DHCP/BPDU injection, MAC address exhaustion attacks, and unauthorized administrative access.
+
+In this guide, we walk through the end-to-end process of initializing and hardening a **Cisco Catalyst 2960-X / 3850 / 9200 / 9300 series switch** directly from the serial console cable to a production-ready state.
+
+---
+
+## 1. Initial Serial Console Connection & Factory Clean State
+
+Connect a rollover RJ-45 to USB serial cable from your management workstation to the `CONSOLE` port of the Catalyst switch. Launch your terminal emulator (such as PuTTY, Tera Term, or SecureCRT) with the standard console parameters:
+- **Baud Rate (Speed):** 9600
+- **Data Bits:** 8
+- **Parity:** None
+- **Stop Bits:** 1
+- **Flow Control:** None
+
+When prompted with the initial System Configuration Dialog:
+```cisco-ios
+Would you like to enter the initial configuration dialog? [yes/no]: no
+```
+Always enter `no`. We configure the switch explicitly through the Cisco IOS CLI.
+
+Enter privileged EXEC mode and inspect existing configuration artifacts:
+```cisco-ios
+Switch> enable
+Switch# show version
+Switch# dir flash:
+```
+
+If the switch was previously used in a staging environment, clean the NVRAM and flash storage before provisioning:
+```cisco-ios
+Switch# write erase
+Erasing the nvram filesystem will remove all configuration files! Continue? [confirm] <ENTER>
+Switch# delete flash:vlan.dat
+Delete filename [vlan.dat]? <ENTER>
+Delete flash:/vlan.dat? [confirm] <ENTER>
+Switch# reload
+Proceed with reload? [confirm] <ENTER>
+```
+
+---
+
+## 2. Basic Host Identification & Domain Settings
+
+Once rebooted into a clean state, assign an enterprise hostname format that designates site location, device role, and chassis index:
+
+```cisco-ios
+Switch# configure terminal
+Switch(config)# hostname CHN-CORP-SW01
+CHN-CORP-SW01(config)# ip domain-name enterprise.internal
+CHN-CORP-SW01(config)# no ip domain-lookup
+```
+
+> [!NOTE]
+> Disabling DNS lookup (`no ip domain-lookup`) prevents the switch CLI from freezing for 30–60 seconds attempting to resolve typos as broadcast DNS requests.
+
+---
+
+## 3. Administrative Credentials & Strong Encryption
+
+Never use cleartext passwords (`enable password`) or weak legacy MD5 hashing (`enable secret 5`). Instead, leverage **PBKDF2 SHA-256** or **scrypt (type 9)** encryption.
+
+```cisco-ios
+CHN-CORP-SW01(config)# service password-encryption
+CHN-CORP-SW01(config)# enable algorithm-type scrypt secret SuperSecureMasterPass#2026
+CHN-CORP-SW01(config)# username netadmin privilege 15 algorithm-type scrypt secret AdminP@ssw0rd!99
+```
+
+Set login failure penalties to prevent dictionary brute-force attempts:
+```cisco-ios
+CHN-CORP-SW01(config)# login block-for 180 attempts 4 within 60
+CHN-CORP-SW01(config)# login on-failure log
+CHN-CORP-SW01(config)# login on-success log
+```
+
+---
+
+## 4. SSHv2 Cryptographic Hardening (Disabling Telnet)
+
+Generate a 2048-bit or 4096-bit RSA modulus for the SSH daemon, enforce SSH Version 2 exclusively, and lock down the VTY lines:
+
+```cisco-ios
+CHN-CORP-SW01(config)# crypto key generate rsa general-keys modulus 2048
+The name for the keys will be: CHN-CORP-SW01.enterprise.internal
+% The key-pair has been generated.
+
+CHN-CORP-SW01(config)# ip ssh version 2
+CHN-CORP-SW01(config)# ip ssh time-out 60
+CHN-CORP-SW01(config)# ip ssh authentication-retries 3
+
+! Restrict Line VTY (virtual terminal) to SSH only
+CHN-CORP-SW01(config)# line vty 0 15
+CHN-CORP-SW01(config-line)# transport input ssh
+CHN-CORP-SW01(config-line)# login local
+CHN-CORP-SW01(config-line)# exec-timeout 10 0
+CHN-CORP-SW01(config-line)# logging synchronous
+CHN-CORP-SW01(config-line)# exit
+
+! Protect the physical serial Console line
+CHN-CORP-SW01(config)# line console 0
+CHN-CORP-SW01(config-line)# login local
+CHN-CORP-SW01(config-line)# exec-timeout 15 0
+CHN-CORP-SW01(config-line)# logging synchronous
+CHN-CORP-SW01(config-line)# exit
+```
+
+---
+
+## 5. Management SVI & Default Gateway
+
+Never leave management traffic on default untagged `VLAN 1`. Instead, create a dedicated out-of-band or in-band management VLAN (e.g., VLAN 99):
+
+```cisco-ios
+CHN-CORP-SW01(config)# vlan 99
+CHN-CORP-SW01(config-vlan)# name InBand-Management
+CHN-CORP-SW01(config-vlan)# exit
+
+CHN-CORP-SW01(config)# interface vlan 99
+CHN-CORP-SW01(config-if)# description MGMT-SVI-INTERFACE
+CHN-CORP-SW01(config-if)# ip address 10.10.99.15 255.255.255.0
+CHN-CORP-SW01(config-if)# no shutdown
+CHN-CORP-SW01(config-if)# exit
+
+! Assign Default Gateway for L2 Switches (or 'ip route' on L3)
+CHN-CORP-SW01(config)# ip default-gateway 10.10.99.1
+```
+
+---
+
+## 6. Spanning Tree Optimization & BPDU Guard
+
+Modern networks should always employ **Rapid-PVST+** (802.1w) to achieve sub-second failover. Every user edge access port must have `spanning-tree portfast` and `bpduguard` enabled to immediately shut down rogue switches or bridge loops.
+
+```cisco-ios
+! Enable Rapid-PVST+ Globally
+CHN-CORP-SW01(config)# spanning-tree mode rapid-pvst
+CHN-CORP-SW01(config)# spanning-tree portfast default
+CHN-CORP-SW01(config)# spanning-tree portfast bpduguard default
+```
+
+For root bridge stability on core or distribution switches:
+```cisco-ios
+CHN-CORP-SW01(config)# spanning-tree vlan 10,20,30,99 root primary
+```
+
+---
+
+## 7. 802.1Q Trunk Port Configuration
+
+When connecting your Catalyst switch to an upstream core router, firewall, or another switch, configure 802.1Q encapsulation and restrict allowed VLANs:
+
+```cisco-ios
+CHN-CORP-SW01(config)# interface GigabitEthernet0/48
+CHN-CORP-SW01(config-if)# description UPLINK-TO-CORE-FIREWALL
+CHN-CORP-SW01(config-if)# switchport trunk encapsulation dot1q
+CHN-CORP-SW01(config-if)# switchport mode trunk
+CHN-CORP-SW01(config-if)# switchport nonegotiate
+CHN-CORP-SW01(config-if)# switchport trunk native vlan 999
+CHN-CORP-SW01(config-if)# switchport trunk allowed vlan 10,20,30,99
+CHN-CORP-SW01(config-if)# exit
+```
+
+> [!TIP]
+> Setting the native VLAN to an unused blackhole ID (like `999`) and disabling DTP negotiation (`switchport nonegotiate`) prevents VLAN hopping attacks.
+
+---
+
+## 8. Layer 2 Port Security for Access Interfaces
+
+Lock down endpoint access ports to prevent unauthorized laptops or malicious network taps from associating with the network:
+
+```cisco-ios
+CHN-CORP-SW01(config)# interface range GigabitEthernet0/1 - 24
+CHN-CORP-SW01(config-if-range)# switchport mode access
+CHN-CORP-SW01(config-if-range)# switchport access vlan 10
+CHN-CORP-SW01(config-if-range)# switchport port-security
+CHN-CORP-SW01(config-if-range)# switchport port-security maximum 2
+CHN-CORP-SW01(config-if-range)# switchport port-security mac-address sticky
+CHN-CORP-SW01(config-if-range)# switchport port-security violation restrict
+CHN-CORP-SW01(config-if-range)# exit
+```
+
+If an unauthorized MAC address is detected, the `restrict` violation mode increments security counters, sends a syslog trap, and drops the unauthorized frames without taking down the legitimate host connection.
+
+---
+
+## 9. Network Time (NTP) & Centralized Syslog
+
+Consistent time stamps are crucial for incident forensics and compliance:
+
+```cisco-ios
+CHN-CORP-SW01(config)# clock timezone IST +5 30
+CHN-CORP-SW01(config)# service timestamps debug datetime msec localtime show-timezone
+CHN-CORP-SW01(config)# service timestamps log datetime msec localtime show-timezone
+
+CHN-CORP-SW01(config)# ntp server 10.10.99.5 prefer
+CHN-CORP-SW01(config)# logging host 10.10.99.10
+CHN-CORP-SW01(config)# logging trap warnings
+```
+
+---
+
+## 10. Committing Configuration & Verification
+
+Ensure unallocated ports are shut down to prevent unauthorized physical patching:
+```cisco-ios
+CHN-CORP-SW01(config)# interface range GigabitEthernet0/25 - 47
+CHN-CORP-SW01(config-if-range)# shutdown
+CHN-CORP-SW01(config-if-range)# description UNUSED-PORT-SHUTDOWN
+CHN-CORP-SW01(config-if-range)# exit
+```
+
+Commit running memory to NVRAM:
+```cisco-ios
+CHN-CORP-SW01# copy running-config startup-config
+Destination filename [startup-config]? <ENTER>
+Building configuration...
+[OK]
+```
+
+Verify your configuration with these essential commands:
+```cisco-ios
+CHN-CORP-SW01# show ip interface brief
+CHN-CORP-SW01# show interfaces trunk
+CHN-CORP-SW01# show port-security
+CHN-CORP-SW01# show spanning-tree summary
+CHN-CORP-SW01# show ntp status
+```
+
+Your Cisco Catalyst switch is now fully provisioned, secured according to industry CIS benchmarks, and ready for production deployment.

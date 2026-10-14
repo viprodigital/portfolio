@@ -1,21 +1,34 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { NAV_LINKS, PERSONAL_INFO } from "@/lib/constants";
 import { Menu, X, Terminal, ArrowUpRight, FileText } from "lucide-react";
 
 export const Navbar: React.FC = () => {
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
   const [activeSection, setActiveSection] = useState<string>("home");
   const [scrolled, setScrolled] = useState<boolean>(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   useEffect(() => {
+    if (!isHomePage) {
+      if (pathname.startsWith("/blog")) {
+        setActiveSection("blog");
+      }
+      return;
+    }
+
     const handleScroll = () => {
       setScrolled(window.scrollY > 30);
 
       // Scroll Spy
-      const sections = NAV_LINKS.map((link) => link.href.substring(1));
+      const sections = NAV_LINKS.filter((l) => l.href.startsWith("#")).map((link) =>
+        link.href.substring(1)
+      );
       const scrollPosition = window.scrollY + 200;
 
       for (let i = sections.length - 1; i >= 0; i--) {
@@ -33,15 +46,19 @@ export const Navbar: React.FC = () => {
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isHomePage, pathname]);
 
-  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    e.preventDefault();
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     setMobileMenuOpen(false);
-    const targetId = href.substring(1);
-    const targetEl = document.getElementById(targetId);
-    if (targetEl) {
-      targetEl.scrollIntoView({ behavior: "smooth" });
+    if (href.startsWith("#")) {
+      if (isHomePage) {
+        e.preventDefault();
+        const targetId = href.substring(1);
+        const targetEl = document.getElementById(targetId);
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: "smooth" });
+        }
+      }
     }
   };
 
@@ -53,9 +70,9 @@ export const Navbar: React.FC = () => {
         }`}
       >
         {/* Brand / Logo */}
-        <a
-          href="#home"
-          onClick={(e) => scrollToSection(e, "#home")}
+        <Link
+          href="/"
+          onClick={(e) => handleNavClick(e, "#home")}
           className="group flex items-center gap-3 px-3.5 py-2 rounded-2xl nav-pill-2026 hover:border-white/20 transition-all duration-300 active:scale-95"
           aria-label="Ruban Portfolio Home"
         >
@@ -71,18 +88,19 @@ export const Navbar: React.FC = () => {
               Network Arch &bull; 2.5y+
             </span>
           </div>
-        </a>
+        </Link>
 
         {/* Desktop Navigation Floating Pill */}
         <nav className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-full nav-pill-2026">
           {NAV_LINKS.map((link) => {
-            const sectionId = link.href.substring(1);
+            const sectionId = link.href.startsWith("#") ? link.href.substring(1) : link.href.replace("/", "");
             const isActive = activeSection === sectionId;
+            const targetHref = isHomePage ? link.href : (link.href.startsWith("#") ? `/${link.href}` : link.href);
             return (
-              <a
+              <Link
                 key={link.name}
-                href={link.href}
-                onClick={(e) => scrollToSection(e, link.href)}
+                href={targetHref}
+                onClick={(e) => handleNavClick(e, link.href)}
                 className={`relative px-3.5 py-1.5 text-xs font-medium transition-colors duration-200 rounded-full ${
                   isActive ? "text-white" : "text-slate-400 hover:text-white"
                 }`}
@@ -95,7 +113,7 @@ export const Navbar: React.FC = () => {
                   />
                 )}
                 <span className="relative z-10">{link.name}</span>
-              </a>
+              </Link>
             );
           })}
         </nav>
@@ -111,14 +129,14 @@ export const Navbar: React.FC = () => {
             <span>Resume</span>
           </a>
 
-          <a
-            href="#contact"
-            onClick={(e) => scrollToSection(e, "#contact")}
+          <Link
+            href={isHomePage ? "#contact" : "/#contact"}
+            onClick={(e) => handleNavClick(e, "#contact")}
             className="group relative inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-primary to-indigo-600 hover:opacity-95 shadow-[0_0_20px_rgba(79,70,229,0.35)] transition-all duration-300 hover:scale-[1.02] active:scale-95"
           >
             <span>Get in Touch</span>
             <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-          </a>
+          </Link>
         </div>
 
         {/* Mobile Hamburger Toggle Button */}
@@ -146,13 +164,14 @@ export const Navbar: React.FC = () => {
           >
             <div className="space-y-1.5">
               {NAV_LINKS.map((link) => {
-                const sectionId = link.href.substring(1);
+                const sectionId = link.href.startsWith("#") ? link.href.substring(1) : link.href.replace("/", "");
                 const isActive = activeSection === sectionId;
+                const targetHref = isHomePage ? link.href : (link.href.startsWith("#") ? `/${link.href}` : link.href);
                 return (
-                  <a
+                  <Link
                     key={link.name}
-                    href={link.href}
-                    onClick={(e) => scrollToSection(e, link.href)}
+                    href={targetHref}
+                    onClick={(e) => handleNavClick(e, link.href)}
                     className={`block px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                       isActive
                         ? "bg-white/[0.08] text-white border border-white/[0.12] font-semibold"
@@ -160,7 +179,7 @@ export const Navbar: React.FC = () => {
                     }`}
                   >
                     {link.name}
-                  </a>
+                  </Link>
                 );
               })}
               <div className="pt-3 border-t border-white/10 flex flex-col gap-2">
@@ -172,14 +191,14 @@ export const Navbar: React.FC = () => {
                   <FileText className="w-3.5 h-3.5 text-cyan-400" />
                   <span>Download Resume (PDF)</span>
                 </a>
-                <a
-                  href="#contact"
-                  onClick={(e) => scrollToSection(e, "#contact")}
+                <Link
+                  href={isHomePage ? "#contact" : "/#contact"}
+                  onClick={(e) => handleNavClick(e, "#contact")}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-primary to-indigo-600 text-white font-medium text-xs shadow-lg shadow-primary/20"
                 >
                   <span>Connect With Ruban</span>
                   <ArrowUpRight className="w-4 h-4" />
-                </a>
+                </Link>
               </div>
             </div>
           </motion.div>

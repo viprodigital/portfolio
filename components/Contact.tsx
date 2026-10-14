@@ -27,6 +27,7 @@ export const Contact: React.FC = () => {
     email: "",
     subject: "",
     message: "",
+    honeypot: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -75,7 +76,7 @@ export const Contact: React.FC = () => {
       }
 
       setTimeout(() => {
-        setFormData({ name: "", email: "", subject: "", message: "" });
+        setFormData({ name: "", email: "", subject: "", message: "", honeypot: "" });
         setIsSuccess(false);
       }, 5000);
     } catch {
@@ -235,6 +236,18 @@ export const Contact: React.FC = () => {
                     className="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none"
                   />
                 </div>
+
+                {/* Anti-spam honeypot field (hidden from legitimate users) */}
+                <input
+                  type="text"
+                  name="honeypot"
+                  value={formData.honeypot}
+                  onChange={handleChange}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  className="hidden"
+                  aria-hidden="true"
+                />
 
                 {/* Error Banner */}
                 {errorMsg && (

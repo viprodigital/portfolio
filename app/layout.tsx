@@ -22,7 +22,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://ruban-portfolio.dev"),
+  metadataBase: new URL("https://portfolio-omega-six-vei2m47p70.vercel.app"),
   icons: {
     icon: "/icon.svg",
     shortcut: "/icon.svg",
@@ -39,6 +39,7 @@ export const metadata: Metadata = {
     "System Engineer",
     "Systems Engineering",
     "Cisco",
+    "Fortinet FortiGate",
     "Windows Server",
     "Linux Administration",
     "Firewall Management",
@@ -48,7 +49,7 @@ export const metadata: Metadata = {
     "TypeScript",
     "DevOps",
   ],
-  authors: [{ name: "Ruban", url: "https://ruban-portfolio.dev" }],
+  authors: [{ name: "Ruban", url: "https://portfolio-omega-six-vei2m47p70.vercel.app" }],
   creator: "Ruban",
   publisher: "Ruban",
   robots: {
@@ -65,19 +66,11 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://ruban-portfolio.dev",
+    url: "https://portfolio-omega-six-vei2m47p70.vercel.app",
     siteName: "Ruban Portfolio",
     title: "Ruban — Network Engineer & Systems Architect",
     description:
       "I build scalable frameworks, Network solutions, and AI-powered workflows to deliver reliable, high-quality software.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Ruban — Network Engineer & Systems Architect Portfolio",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -85,10 +78,9 @@ export const metadata: Metadata = {
     description:
       "I build scalable frameworks, Network solutions, and AI-powered workflows to deliver reliable, high-quality software.",
     creator: "@ruban_tech",
-    images: ["/og-image.png"],
   },
   alternates: {
-    canonical: "https://ruban-portfolio.dev",
+    canonical: "/",
   },
 };
 

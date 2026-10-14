@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { NAV_LINKS, PERSONAL_INFO } from "@/lib/constants";
 import {
   ArrowUp,
@@ -68,13 +69,13 @@ export const Footer: React.FC = () => {
             </h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
               {NAV_LINKS.map((link) => (
-                <a
+                <Link
                   key={link.name}
-                  href={link.href}
+                  href={link.href.startsWith("#") ? `/${link.href}` : link.href}
                   className="text-slate-400 hover:text-white transition-colors py-1"
                 >
                   {link.name}
-                </a>
+                </Link>
               ))}
             </div>
           </div>

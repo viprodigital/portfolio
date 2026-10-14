@@ -1,0 +1,181 @@
+---
+title: "Implementing Zero Trust Network Architecture for Modern Hybrid Enterprises"
+slug: "zero-trust-security-architecture"
+description: "A comprehensive guide to transitioning from legacy castle-and-moat models to NIST SP 800-207 Zero Trust Architecture: micro-segmentation, identity perimeters, 802.1X NAC, and continuous posture evaluation."
+date: "2026-10-10"
+category: "Security"
+tags: ["Zero Trust", "Cybersecurity", "NIST", "Identity", "802.1X", "Active Directory", "Cloud"]
+readingTime: "13 min read"
+featured: true
+draft: false
+author:
+  name: "Ruban"
+  role: "Network Engineer & Systems Architect"
+  avatar: "/images/ruban-profile.jpg"
+---
+
+## The Death of the Castle-and-Moat Model
+
+For decades, enterprise cybersecurity relied on the **perimeter security model**: an external firewall stood as the castle wall, and everything situated inside the corporate LAN was implicitly trusted.
+
+Today, this paradigm is entirely broken. The emergence of hybrid remote workforces, SaaS applications (Microsoft 365, AWS, Salesforce), and sophisticated lateral movement attacks (ransomware, supply-chain exploits) means that perimeter location no longer equates to trustworthiness.
+
+**Zero Trust Architecture (ZTA)** replaces implicit network trust with a continuous, dynamic verification model governed by a foundational maxim:
+
+> *"Never Trust, Always Verify. Assume Breach. Verify Explicitly."*
+
+---
+
+## 1. NIST SP 800-207 Zero Trust Architecture (ZTA)
+
+The National Institute of Standards and Technology (NIST) formalizes Zero Trust through **NIST Special Publication 800-207**. The framework separates governance into a **Control Plane** and a **Data Plane**:
+
+```text
++-----------------------------------------------------------+
+|                       CONTROL PLANE                       |
+|                                                           |
+|   +--------------------+          +-------------------+   |
+|   |   Policy Engine    | <------> | Policy Admin (PA) |   |
+|   |  (Trust Algorithm) |          | (Token/Session)   |   |
+|   +--------------------+          +-------------------+   |
++---------------------------------------------|-------------+
+                                              | Configures
++---------------------------------------------v-------------+
+|                        DATA PLANE                         |
+|                                                           |
+|  [ Subject / Endpoint ] ----> [ Policy Enforcement Point ]|
+|  (User + Managed Device)      (PEP / Reverse Proxy/FW)    |
+|                                             |             |
+|                                             v             |
+|                                   [ Enterprise Resource ] |
+|                                   (Database, App, Server) |
++-----------------------------------------------------------+
+```
+
+### Core Tenets of NIST SP 800-207:
+1. **All data sources and computing services are considered resources.**
+2. **All communication is secured regardless of network location.** (Traffic inside the LAN is encrypted via mTLS / IPSec just as if it were traversing the public internet).
+3. **Access to individual enterprise resources is granted on a per-session basis.**
+4. **Access is determined by dynamic policy**—including user identity, device patch state, behavioral anomaly scores, and environmental attributes.
+5. **The enterprise monitors and measures the integrity and security posture of all owned and associated assets.**
+6. **All resource authentication and authorization are dynamic and strictly enforced before access is allowed.**
+
+---
+
+## 2. Pillar 1: Identity as the Modern Perimeter
+
+In Zero Trust, identity is the first line of defense. IP addresses are ephemeral, but cryptographic identity tokens represent the genuine subject.
+
+### Conditional Access Policies
+Modern identity providers (such as Microsoft Entra ID / Active Directory Federation Services) enforce real-time risk checks before issuing access tokens:
+
+```json
+{
+  "policyName": "Enforce_ZeroTrust_Admin_Access",
+  "conditions": {
+    "users": ["All_Domain_Admins"],
+    "applications": ["AWS_Console", "Production_vCenter", "Core_Firewall_SSH"],
+    "clientAppTypes": ["Browser", "Mobile_Apps", "Desktop_Clients"],
+    "deviceState": {
+      "isCompliant": true,
+      "isHybridAzureADJoined": true
+    },
+    "userRiskLevel": "low",
+    "location": {
+      "include": ["Approved_Corporate_Egress_IPs"],
+      "exclude": ["High_Risk_Countries"]
+    }
+  },
+  "grantControls": {
+    "requireMultiFactorAuth": true,
+    "requireFIDO2HardwareKey": true,
+    "requireDeviceHealthAttestation": true
+  },
+  "sessionControls": {
+    "signInFrequencyHours": 4,
+    "continuousAccessEvaluation": "enforce"
+  }
+}
+```
+
+---
+
+## 3. Pillar 2: 802.1X Port-Based Network Access Control (NAC)
+
+At the physical switchport and Wi-Fi radio layer, Zero Trust mandates that no workstation receives network connectivity until it cryptographically proves its identity using **IEEE 802.1X**.
+
+### EAP-TLS Workflow with Cisco ISE / RADIUS
+1. **Supplicant (Client Device):** Plugs into Catalyst switch.
+2. **Authenticator (Switch):** Blocks all IP traffic except EAPOL (EAP over LAN).
+3. **Authentication Server (Cisco ISE / FreeRADIUS):** Validates the client machine certificate issued by the enterprise Internal PKI.
+
+```cisco-ios
+! Enable 802.1X globally on Cisco Catalyst Switch
+CHN-CORE-SW01(config)# aaa new-model
+CHN-CORE-SW01(config)# radius server ISE-RADIUS-PRIMARY
+CHN-CORE-SW01(config-radius-server)# address ipv4 10.10.99.25 auth-port 1812 acct-port 1813
+CHN-CORE-SW01(config-radius-server)# key StrongRadiusSecretKey#2026
+CHN-CORE-SW01(config-radius-server)# exit
+
+! Configure AAA Authentication
+CHN-CORE-SW01(config)# aaa authentication dot1x default group radius
+CHN-CORE-SW01(config)# aaa authorization network default group radius
+CHN-CORE-SW01(config)# dot1x system-auth-control
+
+! Apply 802.1X to user edge access ports
+CHN-CORE-SW01(config)# interface range GigabitEthernet0/1 - 24
+CHN-CORE-SW01(config-if-range)# switchport mode access
+CHN-CORE-SW01(config-if-range)# authentication port-control auto
+CHN-CORE-SW01(config-if-range)# dot1x pae authenticator
+CHN-CORE-SW01(config-if-range)# authentication event fail action authorize vlan 998 (Quarantine)
+CHN-CORE-SW01(config-if-range)# authentication event no-response action authorize vlan 997 (Guest)
+CHN-CORE-SW01(config-if-range)# exit
+```
+
+If an endpoint fails certificate validation, it is quarantined into a sandbox VLAN with no access to corporate servers.
+
+---
+
+## 4. Pillar 3: Micro-Segmentation & Least Privilege
+
+Once inside the network, lateral movement must be completely blocked. Micro-segmentation partitions the environment into granular micro-perimeters around critical workloads.
+
+### Network Overlay Microsegmentation (VXLAN + EVPN)
+Instead of relying solely on broad subnets, VXLAN tunnels with Group-Based Policy (GBP) enforce access tags right at the hypervisor or switch ASIC:
+
+| Source Tag | Destination Tag | Allowed Protocol | Action | Justification |
+| :--- | :--- | :--- | :--- | :--- |
+| `Workstation_HR` | `App_Payroll` | TCP 443 | **Permit** | Authorized HR processing |
+| `Workstation_HR` | `App_Database_Core` | TCP 5432 | **Deny** | Workstations should never talk directly to raw DBs |
+| `Workstation_Eng` | `Workstation_HR` | ANY | **Deny** | Peer-to-peer lateral hopping blocked |
+| `Domain_Controller` | `All_Clients` | Kerberos / DNS | **Permit** | Directory authentication |
+
+---
+
+## 5. Pillar 4: Continuous Telemetry & Automated Revocation
+
+Authentication in Zero Trust is not a one-time gate pass. Continuous Access Evaluation (CAE) ensures that if an active user changes their location, disables their BitLocker encryption, or triggers a suspicious impossible travel alert, access tokens are revoked in real time.
+
+```text
+[ SIEM / XDR Sensor ] -----> Detects EDR alert on laptop (Mimikatz memory dump)
+        |
+        v
+[ Automated Webhook ] -----> Calls Identity Provider & Firewall API
+        |
+        v
+[ Revocation Action ] -----> - Disconnects active SSL-VPN tunnel
+                             - Quarantines port on Catalyst switch (VLAN 998)
+                             - Revokes OAuth refresh tokens across Microsoft 365
+```
+
+---
+
+## Conclusion: The Zero Trust Roadmap
+
+Transitioning to Zero Trust is an architectural evolution rather than a single software purchase:
+1. **Inventory & Map:** Catalog all enterprise identities, devices, applications, and sensitive data flows.
+2. **Protect the Identity Layer:** Enforce MFA with hardware tokens and eliminate legacy authentication protocols.
+3. **Segment the Network:** Implement 802.1X at the edge and micro-segment databases from application tiers.
+4. **Automate Continuous Verification:** Integrate SIEM logging with dynamic policy enforcement.
+
+By stripping away implicit trust, your enterprise builds an infrastructure capable of withstanding the most aggressive cyber threats of the modern era.

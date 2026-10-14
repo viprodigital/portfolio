@@ -1,0 +1,209 @@
+---
+title: "Essential Linux Commands & Troubleshooting for Systems Engineers"
+slug: "linux-commands-sysadmin"
+description: "A battle-tested field reference for diagnosing Linux production servers: systemd services, socket statistics (ss), packet sniffing (tcpdump), storage quotas, and security hardening."
+date: "2026-10-02"
+category: "Linux"
+tags: ["Linux", "SysAdmin", "Ubuntu", "RHEL", "Bash", "Systemd", "Diagnostics"]
+readingTime: "10 min read"
+featured: false
+draft: false
+author:
+  name: "Ruban"
+  role: "Network Engineer & Systems Architect"
+  avatar: "/images/ruban-profile.jpg"
+---
+
+## Introduction
+
+Whether managing Ubuntu, Red Hat Enterprise Linux (RHEL), Debian, or Rocky Linux, a systems engineer must be equipped to diagnose server outages, kernel bottlenecks, and network failures under high-pressure SLAs.
+
+This guide provides an uncompromising, real-world command-line reference organized by core systems administration domains: systemd services, network sockets, packet sniffing, storage hygiene, process profiling, and SSH hardening.
+
+---
+
+## 1. Systemd Service Control & Journal Logging
+
+Modern Linux distributions rely on `systemd` as the init daemon and service manager.
+
+### Service Life-Cycle Operations
+```bash
+# Check detailed status and recent log lines of a daemon
+sudo systemctl status nginx.service
+
+# Restart a service and reload daemon configuration without dropping connections
+sudo systemctl daemon-reload
+sudo systemctl reload-or-restart nginx.service
+
+# Enable a service to start on system boot
+sudo systemctl enable --now named.service
+
+# List all failed systemd units across the host
+sudo systemctl --failed
+```
+
+### Deep-Dive Logging with `journalctl`
+```bash
+# Follow logs in real-time for a specific service
+sudo journalctl -u nginx.service -f
+
+# Filter logs since a specific timestamp or system boot
+sudo journalctl -u ssh.service --since "2026-10-14 09:00:00"
+sudo journalctl -b 0 -p err..emerg
+
+# Inspect system boot performance bottlenecks
+systemd-analyze
+systemd-analyze blame | head -n 15
+```
+
+---
+
+## 2. Modern Network & Socket Diagnostics
+
+Legacy utilities like `netstat` and `ifconfig` are deprecated in modern kernels. Use the iproute2 suite (`ip` and `ss`).
+
+### Inspecting IP Addressing & Routing Tables
+```bash
+# List all network interfaces with CIDR and flags
+ip -br addr show
+
+# Display the active kernel routing table
+ip route show
+
+# Test routing path selection for a specific destination IP
+ip route get 8.8.8.8
+```
+
+### Socket Inspection with `ss`
+```bash
+# List all active listening TCP and UDP sockets with Process IDs
+sudo ss -tulpn
+
+# Display all established connections targeting port 443 (HTTPS)
+ss -tan state established '( dport = :443 or sport = :443 )'
+
+# Display connection summary statistics
+ss -s
+```
+
+---
+
+## 3. Real-Time Packet Sniffing with `tcpdump`
+
+When diagnosing network packet drops, DNS resolution loops, or firewall drops, `tcpdump` reveals the exact wire telemetry:
+
+```bash
+# Capture and display packets on any interface on port 53 (DNS)
+sudo tcpdump -nn -i any port 53
+
+# Capture HTTP/HTTPS traffic from a specific subnet and save to a PCAP file
+sudo tcpdump -nn -i eth0 src net 192.168.10.0/24 and port 443 -w /tmp/capture_$(date +%F).pcap
+
+# Read and inspect an existing PCAP file in ASCII/HEX
+tcpdump -qns 0 -X -r /tmp/capture_2026-10-14.pcap | head -n 30
+```
+
+> [!TIP]
+> Always pass `-nn` to disable hostname and port resolution. This prevents tcpdump from issuing reverse DNS queries for every packet it intercepts, which would skew your diagnostic logs.
+
+---
+
+## 4. Storage, Inodes & Large File Hunting
+
+Disk full (`100% full`) errors frequently cause databases and applications to crash abruptly.
+
+### Identifying Disk & Inode Utilization
+```bash
+# Check filesystem utilization with human-readable sizes and filesystem types
+df -hT
+
+# Check inode usage (filesystems can run out of inodes even with free gigabytes)
+df -i
+
+# Inspect block devices, mount points, and UUIDs
+lsblk -f
+```
+
+### Hunting Down Outsized Files & Directories
+```bash
+# Find top 10 largest directories in /var
+sudo du -ah /var | sort -rh | head -n 10
+
+# Locate files larger than 1GB modified in the last 7 days
+sudo find / -type f -size +1G -mtime -7 -exec ls -lh {} + 2>/dev/null
+
+# Identify open deleted files still consuming disk space
+sudo lsof | grep '(deleted)'
+```
+
+If a running process has a deleted log file open, restart the daemon or truncate the file descriptor directly:
+```bash
+# Truncate file descriptor without terminating the service
+cat /dev/null > /proc/<PID>/fd/<FD_NUM>
+```
+
+---
+
+## 5. CPU, Memory & Process Profiling
+
+```bash
+# Real-time memory breakdown (used, free, buffers, cached)
+free -h
+
+# Check virtual memory and I/O bottlenecks every 2 seconds
+vmstat 2 5
+
+# Identify top 10 memory-consuming processes
+ps aux --sort=-%mem | awk 'NR<=10{print $2, $3, $4, $11}'
+
+# Trace active system calls executed by a hanging process
+sudo strace -p 1420 -c
+```
+
+---
+
+## 6. SSH Daemon Hardening (`/etc/ssh/sshd_config`)
+
+Prevent brute-force unauthorized access by locking down your OpenSSH daemon:
+
+```bash
+# Generate high-entropy Ed25519 key pair on your client
+ssh-keygen -t ed25519 -C "admin@enterprise.internal"
+
+# Copy public key to remote server
+ssh-copy-id -i ~/.ssh/id_ed25519.pub netadmin@10.10.10.15
+```
+
+Edit the server's SSH configuration file:
+```bash
+sudo nano /etc/ssh/sshd_config
+```
+
+Enforce the following production directives:
+```text
+# Enforce Protocol 2 and non-standard port (optional)
+Port 2222
+
+# Disable root login over SSH
+PermitRootLogin no
+
+# Enforce Public Key Authentication and disable cleartext passwords
+PasswordAuthentication no
+PubkeyAuthentication yes
+AuthenticationMethods publickey
+
+# Limit idle disconnects
+ClientAliveInterval 300
+ClientAliveCountMax 2
+
+# Restrict allowed users
+AllowUsers netadmin sysops
+```
+
+Test the configuration file syntax before restarting the daemon:
+```bash
+sudo sshd -t
+sudo systemctl restart sshd.service
+```
+
+These commands form the indispensable foundation for building resilient, enterprise-grade Linux servers capable of supporting mission-critical workloads.

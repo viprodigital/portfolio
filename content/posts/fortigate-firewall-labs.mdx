@@ -1,0 +1,304 @@
+---
+title: "FortiGate 7.6 Firewall Lab Guide: Policy Routing, NAT & SSL-VPN Deployment"
+slug: "fortigate-firewall-labs"
+description: "A complete hands-on engineering lab for Fortinet FortiOS 7.6, covering interface configuration, Virtual IPs (DNAT), Next-Gen Security Profiles, and enterprise SSL-VPN deployment."
+date: "2026-09-24"
+category: "Security"
+tags: ["Fortinet", "FortiGate", "FortiOS 7.6", "Firewall", "SSL-VPN", "NAT", "Cybersecurity"]
+readingTime: "11 min read"
+featured: true
+draft: false
+author:
+  name: "Ruban"
+  role: "Network Engineer & Systems Architect"
+  avatar: "/images/ruban-profile.jpg"
+---
+
+## Overview
+
+Fortinet's **FortiOS 7.6** represents the latest generation of security-driven networking, packing ASIC-accelerated inspection (CP9 / NP7 processors), unified zero-trust network access (ZTNA), and intelligent SD-WAN into a single appliance.
+
+In this deep-dive lab tutorial, we construct a production-ready edge perimeter firewall from scratch using both the FortiOS CLI and graphical interface. We will configure interface IP addressing, outbound Source NAT (PAT), inbound Destination NAT (Virtual IPs), Next-Gen Security Profiles, and an enterprise SSL-VPN portal for remote engineers.
+
+---
+
+## 1. Network Topology & Lab Parameters
+
+Before issuing commands, establish the topology addressing schema:
+
+| Interface | Name | IP / Subnet | Role | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| `port1` | `WAN1` | `203.0.113.10/29` | WAN | Primary ISP Uplink |
+| `port2` | `WAN2` | `198.51.100.22/29` | WAN | Secondary Backup ISP |
+| `port3` | `LAN-Core` | `10.10.10.1/24` | LAN | Internal Production Servers & Endpoints |
+| `port4` | `DMZ` | `172.16.50.1/24` | DMZ | Publicly reachable web & mail servers |
+| `ssl.root` | `SSL-VPN` | `10.212.134.0/24` | VPN | Dynamic remote worker client pool |
+
+---
+
+## 2. Interface Provisioning via FortiOS CLI
+
+Access the FortiGate console via serial or SSH (`admin` / default blank password on initial setup):
+
+```fortios
+config system interface
+    edit "port1"
+        set vdom "root"
+        set mode static
+        set ip 203.0.113.10 255.255.255.248
+        set allowaccess ping https ssh
+        set type physical
+        set role wan
+        set description "Primary Fiber Uplink ISP-A"
+    next
+    edit "port3"
+        set vdom "root"
+        set mode static
+        set ip 10.10.10.1 255.255.255.0
+        set allowaccess ping https ssh fabric
+        set type physical
+        set role lan
+        set description "Corporate LAN Backbone"
+    next
+    edit "port4"
+        set vdom "root"
+        set mode static
+        set ip 172.16.50.1 255.255.255.0
+        set allowaccess ping https
+        set type physical
+        set role dmz
+        set description "Public Facing DMZ Subnet"
+    next
+end
+```
+
+---
+
+## 3. Static Default Routing & Gateway Health Checks
+
+Configure default gateway routing so packets targeting the internet are forwarded through the primary ISP:
+
+```fortios
+config router static
+    edit 1
+        set gateway 203.0.113.9
+        set device "port1"
+        set comment "Default Gateway ISP-1"
+    next
+end
+```
+
+Enable Link Health Monitor (Performance SLA) to verify gateway reachability using ICMP and DNS probes:
+
+```fortios
+config system performance-sla
+    edit "ISP1_Health"
+        set server "1.1.1.1" "8.8.8.8"
+        set monitor-bandwidth enable
+        set members 1
+    next
+end
+```
+
+---
+
+## 4. Outbound Internet Access Policy with Source NAT (PAT)
+
+Create an address object defining the internal LAN subnet, followed by a stateful firewall policy that executes outbound Source Port Address Translation (PAT) over the WAN interface:
+
+```fortios
+config firewall address
+    edit "NET_CORP_LAN"
+        set subnet 10.10.10.0 255.255.255.0
+        set comment "Corporate Internal LAN"
+    next
+end
+
+config firewall policy
+    edit 1
+        set name "LAN_to_WAN_Internet"
+        set srcintf "port3"
+        set dstintf "port1"
+        set action accept
+        set srcaddr "NET_CORP_LAN"
+        set dstaddr "all"
+        set schedule "always"
+        set service "ALL"
+        set nat enable
+        set logtraffic all
+        set comment "Allow internal clients out to internet via NAT"
+    next
+end
+```
+
+> [!NOTE]
+> Setting `nat enable` instructs the FortiGate to replace the source IP `10.10.10.x` with the WAN interface IP `203.0.113.10` and allocate a random ephemeral source port for state tracking.
+
+---
+
+## 5. Inbound Destination NAT using Virtual IPs (VIPs)
+
+To securely publish an internal DMZ web server (e.g., `172.16.50.80`) on an external public IP, configure a **Virtual IP (VIP)** with port forwarding:
+
+```fortios
+config firewall vip
+    edit "VIP_DMZ_HTTPS_WEB"
+        set extip 203.0.113.11
+        set mappedip "172.16.50.80"
+        set extintf "port1"
+        set portforward enable
+        set protocol tcp
+        set extport 443
+        set mappedport 443
+        set comment "DNAT Inbound HTTPS to DMZ Web Server"
+    next
+end
+```
+
+Now attach this Virtual IP to a firewall policy from `port1` (WAN) to `port4` (DMZ):
+
+```fortios
+config firewall policy
+    edit 10
+        set name "WAN_to_DMZ_Web_HTTPS"
+        set srcintf "port1"
+        set dstintf "port4"
+        set action accept
+        set srcaddr "all"
+        set dstaddr "VIP_DMZ_HTTPS_WEB"
+        set schedule "always"
+        set service "HTTPS"
+        set logtraffic all
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set ips-sensor "default"
+    next
+end
+```
+
+---
+
+## 6. Attaching Next-Generation Security Profiles
+
+FortiGate delivers deep packet inspection by chaining unified threat management (UTM) sensors onto your policies:
+
+```fortios
+config firewall policy
+    edit 1
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "default"
+        set webfilter-profile "default"
+        set ips-sensor "default"
+        set application-list "default"
+    next
+end
+```
+
+### Key Security Profiles Explained:
+- **Antivirus (AV):** Scans file streams for malware signatures in transit over HTTP, FTP, and SMTP.
+- **Web Filtering:** Enforces domain reputation and blocks categories such as phishing, malicious payloads, and hacking tools.
+- **Application Control:** Identifies application layer handshakes regardless of standard port obfuscation (e.g., detecting BitTorrent over port 443).
+- **IPS (Intrusion Prevention):** Shields internal servers against known CVE exploits and buffer overflow probes.
+
+---
+
+## 7. Configuring Enterprise SSL-VPN Gateway
+
+Deploying remote worker access requires defining an IP address pool, configuring user credentials, creating a portal layout, and applying access policies.
+
+### Step 7.1: Define VPN Address Pool & User Group
+```fortios
+config firewall address
+    edit "SSLVPN_POOL"
+        set type iprange
+        set start-ip 10.212.134.200
+        set end-ip 10.212.134.250
+    next
+end
+
+config user local
+    edit "remote_engineer"
+        set type password
+        set passwd SecureVpnPassword#2026
+    next
+end
+
+config user group
+    edit "SSLVPN_ENGINEERING_GROUP"
+        set member "remote_engineer"
+    next
+end
+```
+
+### Step 7.2: Configure the SSL-VPN Portal & Service
+```fortios
+config vpn ssl web portal
+    edit "full-tunnel-portal"
+        set tunnel-mode enable
+        set ip-pools "SSLVPN_POOL"
+        set split-tunneling enable
+        set split-tunneling-routing-address "NET_CORP_LAN"
+    next
+end
+
+config vpn ssl settings
+    edit
+        set servercert "Fortinet_Factory"
+        set tunnel-ip-pools "SSLVPN_POOL"
+        set source-interface "port1"
+        set source-port 10443
+        set default-portal "full-tunnel-portal"
+        config authentication-rule
+            edit 1
+                set groups "SSLVPN_ENGINEERING_GROUP"
+                set portal "full-tunnel-portal"
+            next
+        end
+    next
+end
+```
+
+### Step 7.3: Policy from VPN (`ssl.root`) to LAN
+```fortios
+config firewall policy
+    edit 50
+        set name "SSLVPN_to_Internal_LAN"
+        set srcintf "ssl.root"
+        set dstintf "port3"
+        set action accept
+        set srcaddr "SSLVPN_POOL"
+        set dstaddr "NET_CORP_LAN"
+        set schedule "always"
+        set service "SSH" "RDP" "HTTPS" "PING"
+        set groups "SSLVPN_ENGINEERING_GROUP"
+        set logtraffic all
+    next
+end
+```
+
+---
+
+## 8. Packet Flow Debugging & Diagnostics
+
+When troubleshooting drop events or asymmetric routing, FortiOS provides one of the most powerful real-time flow sniffers in the industry:
+
+```fortios
+! 1. Filter packets targeting internal server 10.10.10.50
+diagnose debug reset
+diagnose debug flow filter addr 10.10.10.50
+diagnose debug flow filter proto 6
+
+! 2. Show detailed trace output
+diagnose debug flow show function-name enable
+diagnose debug flow trace start 100
+diagnose debug enable
+```
+
+To inspect active NAT translations in the state table:
+```fortios
+diagnose sys session filter dst 203.0.113.11
+diagnose sys session list
+```
+
+This completes a fully operational FortiOS 7.6 enterprise gateway configuration, enforcing zero-trust ingress and encrypted remote access.

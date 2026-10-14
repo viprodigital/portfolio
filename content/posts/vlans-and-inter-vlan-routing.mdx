@@ -1,0 +1,189 @@
+---
+title: "Mastering VLANs and Inter-VLAN Routing: Router-on-a-Stick vs Layer 3 Switch SVI"
+slug: "vlans-and-inter-vlan-routing"
+description: "A comprehensive architectural guide comparing Router-on-a-Stick (ROAS) and Layer 3 Switch SVIs for inter-VLAN routing, featuring 802.1Q sub-interfaces, DHCP relay, and ACL segmentation."
+date: "2026-10-06"
+category: "Networking"
+tags: ["VLAN", "Routing", "Cisco", "802.1Q", "Switching", "DHCP Relay", "Network Architecture"]
+readingTime: "12 min read"
+featured: false
+draft: false
+author:
+  name: "Ruban"
+  role: "Network Engineer & Systems Architect"
+  avatar: "/images/ruban-profile.jpg"
+---
+
+## Introduction
+
+In a flat Layer 2 network, all devices occupy a single broadcast domain. A malicious ARP spoof, broadcast storm, or malware worm can instantly propagate to every machine on the wire.
+
+Virtual Local Area Networks (**VLANs**) break a single physical switch fabric into isolated, logical broadcast domains. However, once segmented, devices in separate VLANs cannot communicate without a Layer 3 routing boundary.
+
+This tutorial explores the two premier methods of interconnecting VLANs:
+1. **Router-on-a-Stick (ROAS)** utilizing 802.1Q sub-interfaces.
+2. **Layer 3 Switch Switched Virtual Interfaces (SVIs)** delivering wire-speed hardware packet forwarding.
+
+---
+
+## 1. IEEE 802.1Q Tagging Mechanism
+
+Standard Ethernet frames do not possess a VLAN identifier. The **IEEE 802.1Q** standard inserts a 4-byte (32-bit) tag directly into the Ethernet header between the Source MAC and EtherType fields:
+- **TPID (Tag Protocol Identifier):** Fixed `0x8100` designating an 802.1Q tagged frame.
+- **PCP (Priority Code Point):** 3 bits for 802.1p Quality of Service (QoS) class marking.
+- **DEI (Drop Eligible Indicator):** 1 bit indicating drop precedence under congestion.
+- **VID (VLAN Identifier):** 12 bits supporting VLAN IDs from `1` to `4094`.
+
+```text
+[ Dest MAC ] [ Src MAC ] [ 802.1Q Tag: 4 Bytes ] [ Type/Len ] [ Payload ] [ FCS ]
+                                |
+               +----------------+----------------+
+               | TPID: 16 bits  | PCP: 3 | DEI: 1| VID: 12 bits |
+               | (0x8100)       | Priority       | (VLAN 1-4094) |
+               +----------------+----------------+--------------+
+```
+
+---
+
+## 2. Method 1: Router-on-a-Stick (ROAS) Configuration
+
+Router-on-a-Stick relies on a single physical link between a Layer 2 switch and a router. The router splits the physical port into multiple logical sub-interfaces, each associated with a designated VLAN ID.
+
+### Step 2.1: Switch Uplink Trunk Configuration
+```cisco-ios
+Switch# configure terminal
+Switch(config)# vlan 10
+Switch(config-vlan)# name Engineering
+Switch(config-vlan)# exit
+
+Switch(config)# vlan 20
+Switch(config-vlan)# name Accounting
+Switch(config-vlan)# exit
+
+! Configure 802.1Q trunk port to router
+Switch(config)# interface GigabitEthernet0/1
+Switch(config-if)# description UPLINK-TO-ROUTER-G0/0/0
+Switch(config-if)# switchport trunk encapsulation dot1q
+Switch(config-if)# switchport mode trunk
+Switch(config-if)# switchport trunk allowed vlan 10,20
+Switch(config-if)# no shutdown
+```
+
+### Step 2.2: Router Sub-interface Configuration
+```cisco-ios
+Router# configure terminal
+Router(config)# interface GigabitEthernet0/0/0
+Router(config-if)# description PHYSICAL-TRUNK-PARENT
+Router(config-if)# no ip address
+Router(config-if)# no shutdown
+Router(config-if)# exit
+
+! Sub-interface for VLAN 10 (Engineering)
+Router(config)# interface GigabitEthernet0/0/0.10
+Router(config-subif)# description GATEWAY-VLAN-10-ENGINEERING
+Router(config-subif)# encapsulation dot1Q 10
+Router(config-subif)# ip address 192.168.10.1 255.255.255.0
+Router(config-subif)# exit
+
+! Sub-interface for VLAN 20 (Accounting)
+Router(config)# interface GigabitEthernet0/0/0.20
+Router(config-subif)# description GATEWAY-VLAN-20-ACCOUNTING
+Router(config-subif)# encapsulation dot1Q 20
+Router(config-subif)# ip address 192.168.20.1 255.255.255.0
+Router(config-subif)# exit
+```
+
+> [!WARNING]
+> While cost-effective for branch offices, ROAS creates a bandwidth bottleneck because traffic moving between VLAN 10 and VLAN 20 must traverse the same physical uplink twice (ingress and egress).
+
+---
+
+## 3. Method 2: Layer 3 Switch SVIs (Multi-Gigabit ASIC Wire-Speed)
+
+For enterprise campus cores and data centers, **Layer 3 Switches** (such as Cisco Catalyst 3850, 9300, or Nexus series) route packets directly in dedicated hardware Application-Specific Integrated Circuits (ASICs) at full line rate.
+
+### Step 3.1: Enable Layer 3 Routing
+```cisco-ios
+L3Switch# configure terminal
+L3Switch(config)# ip routing
+```
+
+### Step 3.2: Create VLANs & Switched Virtual Interfaces (SVIs)
+```cisco-ios
+! Create VLANs in local database
+L3Switch(config)# vlan 10
+L3Switch(config-vlan)# name Engineering
+L3Switch(config-vlan)# vlan 20
+L3Switch(config-vlan)# name Accounting
+L3Switch(config-vlan)# vlan 30
+L3Switch(config-vlan)# name Voice-VoIP
+L3Switch(config-vlan)# exit
+
+! Configure SVI default gateway for VLAN 10
+L3Switch(config)# interface vlan 10
+L3Switch(config-if)# description GW-ENGINEERING
+L3Switch(config-if)# ip address 192.168.10.1 255.255.255.0
+L3Switch(config-if)# no shutdown
+L3Switch(config-if)# exit
+
+! Configure SVI default gateway for VLAN 20
+L3Switch(config)# interface vlan 20
+L3Switch(config-if)# description GW-ACCOUNTING
+L3Switch(config-if)# ip address 192.168.20.1 255.255.255.0
+L3Switch(config-if)# no shutdown
+L3Switch(config-if)# exit
+```
+
+Now, packets between `192.168.10.0/24` and `192.168.20.0/24` are routed inside switch silicon in nanoseconds without ever leaving the chassis.
+
+---
+
+## 4. DHCP Relay (`ip helper-address`)
+
+Because DHCP Discover packets are local Layer 2 broadcasts (`255.255.255.255`), routers and L3 switches do not forward them across VLAN boundaries. To utilize a centralized DHCP server (e.g., Windows Server at `10.10.99.10`), configure the `ip helper-address`:
+
+```cisco-ios
+L3Switch(config)# interface vlan 10
+L3Switch(config-if)# ip helper-address 10.10.99.10
+L3Switch(config-if)# exit
+
+L3Switch(config)# interface vlan 20
+L3Switch(config-if)# ip helper-address 10.10.99.10
+L3Switch(config-if)# exit
+```
+
+The switch converts the client's broadcast into a unicast UDP packet (port 67), adds its own SVI IP address to the `giaddr` (gateway IP address) field, and forwards it directly to the server so the correct pool is allocated.
+
+---
+
+## 5. Security Segmentation with Access Control Lists (ACLs)
+
+Inter-VLAN routing should never allow unrestricted access. For instance, Accounting endpoints should not reach Engineering development clusters:
+
+```cisco-ios
+! Create Extended Access List
+L3Switch(config)# ip access-list extended BLOCK_ACCT_TO_ENG
+L3Switch(config-ext-nacl)# permit icmp 192.168.20.0 0.0.0.255 192.168.10.0 0.0.0.255 echo
+L3Switch(config-ext-nacl)# deny ip 192.168.20.0 0.0.0.255 192.168.10.0 0.0.0.255
+L3Switch(config-ext-nacl)# permit ip 192.168.20.0 0.0.0.255 any
+L3Switch(config-ext-nacl)# exit
+
+! Apply inbound on Accounting SVI
+L3Switch(config)# interface vlan 20
+L3Switch(config-if)# ip access-group BLOCK_ACCT_TO_ENG in
+L3Switch(config-if)# exit
+```
+
+---
+
+## 6. Verification & Troubleshooting
+
+Check routing and interface status with these CLI commands:
+```cisco-ios
+L3Switch# show ip route
+L3Switch# show ip interface brief
+L3Switch# show vlan brief
+L3Switch# show interfaces trunk
+```
+
+This completes the blueprint for scalable, segregated inter-VLAN architecture in enterprise networks.
